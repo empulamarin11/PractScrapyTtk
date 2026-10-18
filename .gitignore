@@ -1,0 +1,47 @@
+# === Entorno virtual ===
+venv/
+env/
+.venv/
+ENV/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# === Playwright ===
+# Los navegadores descargados por playwright install
+# (normalmente van a ~/.cache/ms-playwright, pero por si acaso)
+ms-playwright/
+
+# ===  CRÍTICO: Sesión y cookies ===
+tiktok_state.json
+*.state.json
+cookies*.json
+auth*.json
+
+# === Resultados con datos de terceros ===
+resultados_*.json
+*_output.json
+
+# === Configuración del editor/IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === Sistema operativo ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Logs y temporales ===
+*.log
+*.tmp
