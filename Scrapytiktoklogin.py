@@ -9,12 +9,11 @@ def iniciar_sesion(page):
     print("\n Inicia sesión manualmente en la ventana que se abrirá.")
     print("   Cuando estés dentro, vuelve aquí y pulsa ENTER.")
     page.goto("https://www.tiktok.com", timeout=60000)
-    input("  ▶ ENTER cuando hayas iniciado sesión... ")
+    input("   ENTER cuando hayas iniciado sesión... ")
     page.context.storage_state(path=STATE_FILE)
     print(f"   Sesión guardada en '{STATE_FILE}'.")
 
 def extraer_lista_modal(page, tipo):
-    """Hace clic en 'Siguiendo'/'Seguidores' y extrae usernames con scroll."""
     boton = f'[data-e2e="{tipo}-count"]'
     modal = f'[data-e2e="{tipo}-list"]'
     try:
@@ -23,20 +22,28 @@ def extraer_lista_modal(page, tipo):
         page.wait_for_selector(modal, timeout=10000)
 
         usuarios = set()
-        # Scroll dentro del modal para cargar más
         for _ in range(10):
             visibles = page.locator(f'{modal} [data-e2e="user-title"]').all_inner_texts()
             usuarios.update(visibles)
             page.locator(modal).evaluate("el => el.scrollTop = el.scrollHeight")
             time.sleep(2)
 
+        # Cerrar el modal
+        try:
+            page.keyboard.press("Escape")
+        except:
+            pass
+
         return list(usuarios) if usuarios else " Lista vacía"
     except Exception as e:
         return f" No accesible: {str(e)[:80]}"
 
-def main():
-    usuarios = input("Usernames separados por coma: ").strip().split(",")
+def ejecutar_autenticado():
+    usuarios = input("\nUsernames separados por coma: ").strip().split(",")
     usuarios = [u.strip().lstrip("@") for u in usuarios if u.strip()]
+    if not usuarios:
+        print(" No ingresaste ningún username.")
+        return
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
@@ -66,6 +73,3 @@ def main():
 
         guardar_json(resultados, "resultados_autenticado.json")
         browser.close()
-
-if __name__ == "__main__":
-    main()
