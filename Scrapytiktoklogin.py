@@ -5,13 +5,15 @@ from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json
 
 STATE_FILE = "tiktok_state.json"
 
+
 def iniciar_sesion(page):
     print("\n Inicia sesión manualmente en la ventana que se abrirá.")
     print("   Cuando estés dentro, vuelve aquí y pulsa ENTER.")
     page.goto("https://www.tiktok.com", timeout=60000)
     input("   ENTER cuando hayas iniciado sesión... ")
     page.context.storage_state(path=STATE_FILE)
-    print(f"   Sesión guardada en '{STATE_FILE}'.")
+    print(f"  ✅ Sesión guardada en '{STATE_FILE}'.")
+
 
 def extraer_lista_modal(page, tipo):
     boton = f'[data-e2e="{tipo}-count"]'
@@ -28,7 +30,6 @@ def extraer_lista_modal(page, tipo):
             page.locator(modal).evaluate("el => el.scrollTop = el.scrollHeight")
             time.sleep(2)
 
-        # Cerrar el modal
         try:
             page.keyboard.press("Escape")
         except:
@@ -37,6 +38,7 @@ def extraer_lista_modal(page, tipo):
         return list(usuarios) if usuarios else " Lista vacía"
     except Exception as e:
         return f" No accesible: {str(e)[:80]}"
+
 
 def ejecutar_autenticado():
     usuarios = input("\nUsernames separados por coma: ").strip().split(",")
@@ -73,3 +75,9 @@ def ejecutar_autenticado():
 
         guardar_json(resultados, "resultados_autenticado.json")
         browser.close()
+
+
+# 🔑 Esto permite ejecutarlo directo con: python scraper_autenticado.py
+if __name__ == "__main__":
+    print("=== MODO AUTENTICADO (con login) ===")
+    ejecutar_autenticado()

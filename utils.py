@@ -1,8 +1,10 @@
 import json
 import time
 
+
 USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+
 
 def configurar_contexto(browser, storage_state=None):
     """Crea un contexto de navegador con medidas anti-detección."""
@@ -19,11 +21,38 @@ def configurar_contexto(browser, storage_state=None):
     )
     return context
 
+
 def extraer_perfil_y_videos(page, username):
     """Extrae perfil + stats + últimos 12 videos con playCount."""
     url = f"https://www.tiktok.com/@{username}"
-    print(f"\nExtrayendo @{username}...")
-    page.goto(url, timeout=60000, wait_until="domcontentloaded")
+    print(f"\n🔍 Extrayendo @{username}...")
+
+    page.on(
+        "response",
+        lambda response: print(
+            f"HTTP {response.status} | {response.url}"
+        )
+        if "tiktok.com" in response.url
+        else None
+    )
+
+    try:
+        respuesta = page.goto(
+            url,
+            timeout=60000,
+            wait_until="domcontentloaded"
+        )
+
+        if respuesta:
+            print(f"Estado HTTP: {respuesta.status}")
+            print(f"URL final: {page.url}")
+        else:
+            print("La navegación no devolvió una respuesta HTTP.")
+
+    except Exception as e:
+        print(f"Error de navegación: {e}")
+        print(f"URL actual: {page.url}")
+        raise
     page.wait_for_selector('[data-e2e="user-title"]', timeout=30000)
     time.sleep(3)
 
@@ -53,10 +82,14 @@ def extraer_perfil_y_videos(page, username):
 
     # Capturar XHR para videos adicionales
     respuestas_api = []
+
     def capturar(response):
         if "/api/post/item_list" in response.url:
-            try: respuestas_api.append(response.json())
-            except: pass
+            try:
+                respuestas_api.append(response.json())
+            except:
+                pass
+
     page.on("response", capturar)
 
     videos = user_detail.get("itemList", [])
@@ -84,7 +117,8 @@ def extraer_perfil_y_videos(page, username):
     perfil["ultimos_12_videos"] = lista_videos
     return perfil
 
+
 def guardar_json(resultados, nombre_archivo):
     with open(nombre_archivo, "w", encoding="utf-8") as f:
         json.dump(resultados, f, indent=4, ensure_ascii=False)
-    print(f"\n Guardado en '{nombre_archivo}'.")
+    print(f"\n✅ Guardado en '{nombre_archivo}'.")

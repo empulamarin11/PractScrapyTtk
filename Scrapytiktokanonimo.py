@@ -2,6 +2,7 @@ import time
 from playwright.sync_api import sync_playwright
 from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json
 
+
 def ejecutar_anonimo():
     usuarios = input("\nUsernames separados por coma: ").strip().split(",")
     usuarios = [u.strip().lstrip("@") for u in usuarios if u.strip()]
@@ -12,7 +13,10 @@ def ejecutar_anonimo():
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=False,
-            args=["--disable-blink-features=AutomationControlled"]
+             args=[
+        "--disable-blink-features=AutomationControlled",
+        "--no-proxy-server"   #  Forzar que no se use ningún proxy
+    ]
         )
         context = configurar_contexto(browser)
         page = context.new_page()
@@ -35,3 +39,9 @@ def ejecutar_anonimo():
 
         guardar_json(resultados, "resultados_anonimo.json")
         browser.close()
+
+
+#  Esto permite ejecutarlo directo con: python scraper_anonimo.py
+if __name__ == "__main__":
+    print("=== MODO ANÓNIMO (sin login) ===")
+    ejecutar_anonimo()
