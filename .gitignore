@@ -3,6 +3,7 @@ venv/
 env/
 .venv/
 ENV/
+scrapitest.py
 
 # === Python ===
 __pycache__/
@@ -30,7 +31,14 @@ auth*.json
 # === Resultados con datos de terceros ===
 resultados_*.json
 *_output.json
-
+# ============================================
+# Resultados del scraper (datos personales)
+# ============================================
+resultados_anonimo.json
+resultados_autenticado.json
+resultado_*.json
+resultado_auth_*.json
+resultados_*.json
 # === Configuración del editor/IDE ===
 .vscode/
 .idea/

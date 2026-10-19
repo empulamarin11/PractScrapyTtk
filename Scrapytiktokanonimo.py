@@ -23,21 +23,27 @@ def ejecutar_anonimo():
 
         print(" Obteniendo cookies anónimas...")
         page.goto("https://www.tiktok.com", timeout=60000)
-        time.sleep(5)
+        time.sleep(8)
 
-        resultados = []
         for user in usuarios:
             try:
                 datos = extraer_perfil_y_videos(page, user)
                 datos["lista_seguidores"] = " Requiere login (usa el modo 2)"
                 datos["lista_seguidos"] = " Requiere login (usa el modo 2)"
-                resultados.append(datos)
+
+                # ✅ Guardar UN archivo por usuario
+                nombre_archivo = f"resultado_{user}.json"
+                guardar_json([datos], nombre_archivo)
+
                 time.sleep(10)
             except Exception as e:
                 print(f" Error con {user}: {e}")
-                resultados.append({"username": user, "error": str(e)})
+                # ✅ También guardar el error en su propio archivo
+                guardar_json(
+                    [{"username": user, "error": str(e)}],
+                    f"resultado_{user}.json"
+                )
 
-        guardar_json(resultados, "resultados_anonimo.json")
         browser.close()
 
 

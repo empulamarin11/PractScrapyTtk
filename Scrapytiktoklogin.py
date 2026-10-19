@@ -50,7 +50,10 @@ def ejecutar_autenticado():
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=False,
-            args=["--disable-blink-features=AutomationControlled"]
+                         args=[
+                    "--disable-blink-features=AutomationControlled",
+                    "--no-proxy-server"   #  Forzar que no se use ningún proxy
+                ]
         )
         storage = STATE_FILE if os.path.exists(STATE_FILE) else None
         if storage:
@@ -61,19 +64,25 @@ def ejecutar_autenticado():
         if not storage:
             iniciar_sesion(page)
 
-        resultados = []
         for user in usuarios:
             try:
                 datos = extraer_perfil_y_videos(page, user)
                 datos["lista_seguidos"] = extraer_lista_modal(page, "following")
                 datos["lista_seguidores"] = extraer_lista_modal(page, "followers")
-                resultados.append(datos)
+
+                # ✅ Guardar UN archivo por usuario
+                nombre_archivo = f"resultado_auth_{user}.json"
+                guardar_json([datos], nombre_archivo)
+
                 time.sleep(12)
             except Exception as e:
                 print(f" Error con {user}: {e}")
-                resultados.append({"username": user, "error": str(e)})
+                # ✅ También guardar el error en su propio archivo
+                guardar_json(
+                    [{"username": user, "error": str(e)}],
+                    f"resultado_auth_{user}.json"
+                )
 
-        guardar_json(resultados, "resultados_autenticado.json")
         browser.close()
 
 
