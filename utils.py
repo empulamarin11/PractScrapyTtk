@@ -25,36 +25,23 @@ def configurar_contexto(browser, storage_state=None):
 def extraer_perfil_y_videos(page, username):
     """Extrae perfil + stats + últimos 12 videos con playCount."""
     url = f"https://www.tiktok.com/@{username}"
-    print(f"\n🔍 Extrayendo @{username}...")
-
-    page.on(
-        "response",
-        lambda response: print(
-            f"HTTP {response.status} | {response.url}"
-        )
-        if "tiktok.com" in response.url
-        else None
-    )
+    print(f"\n Extrayendo @{username}...")
 
     try:
-        respuesta = page.goto(
-            url,
-            timeout=60000,
-            wait_until="domcontentloaded"
-        )
-
+        
+        respuesta = page.goto(url, timeout=60000, wait_until="domcontentloaded")
         if respuesta:
             print(f"Estado HTTP: {respuesta.status}")
             print(f"URL final: {page.url}")
         else:
             print("La navegación no devolvió una respuesta HTTP.")
-
     except Exception as e:
         print(f"Error de navegación: {e}")
         print(f"URL actual: {page.url}")
         raise
+
     page.wait_for_selector('[data-e2e="user-title"]', timeout=30000)
-    time.sleep(3)
+    page.wait_for_timeout(3000)  # CAMBIO: wait_for_timeout en lugar de time.sleep
 
     # Cerrar popup de login (por si aparece)
     try:
@@ -76,7 +63,7 @@ def extraer_perfil_y_videos(page, username):
         "bio": user.get("signature", ""),
         "seguidores": stats.get("followerCount"),
         "seguidos": stats.get("followingCount"),
-        "likes_totales": stats.get("heart"),
+        "likes_totales": stats.get("heartCount") or stats.get("heart"),  # CAMBIO: preferir heartCount
         "videos_totales": stats.get("videoCount"),
     }
 
@@ -94,16 +81,28 @@ def extraer_perfil_y_videos(page, username):
 
     videos = user_detail.get("itemList", [])
     intentos = 0
-    while len(videos) < 12 and intentos < 10:
+    while len(videos) < 10 and intentos < 10:
         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-        time.sleep(2)
+        page.wait_for_timeout(2000)  # CAMBIO: wait_for_timeout
         intentos += 1
 
     for resp in respuestas_api:
         videos.extend(resp.get("itemList", []))
 
+    # CAMBIO CRÍTICO: eliminar el listener antes de salir para no acumular entre usuarios
+    page.remove_listener("response", capturar)
+
+    # CAMBIO: deduplicar videos por id antes de construir la lista final
+    vistos = set()
+    videos_unicos = []
+    for v in videos:
+        vid = v.get("id")
+        if vid and vid not in vistos:
+            vistos.add(vid)
+            videos_unicos.append(v)
+
     lista_videos = []
-    for v in videos[:12]:
+    for v in videos_unicos[:10]:
         vid = v.get("id")
         v_stats = v.get("stats", {})
         lista_videos.append({
@@ -114,11 +113,11 @@ def extraer_perfil_y_videos(page, username):
             "comentarios": v_stats.get("commentCount", 0),
             "compartidos": v_stats.get("shareCount", 0),
         })
-    perfil["ultimos_12_videos"] = lista_videos
+    perfil["ultimos_10_videos"] = lista_videos
     return perfil
 
 
 def guardar_json(resultados, nombre_archivo):
     with open(nombre_archivo, "w", encoding="utf-8") as f:
         json.dump(resultados, f, indent=4, ensure_ascii=False)
-    print(f"\n✅ Guardado en '{nombre_archivo}'.")
+    print(f"\n Guardado en '{nombre_archivo}'.")

@@ -4,7 +4,7 @@ from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json
 
 
 def ejecutar_anonimo():
-    usuarios = input("\nUsernames separados por coma: ").strip().split(",")
+    usuarios = input("\nUsername: ").strip().split(",")
     usuarios = [u.strip().lstrip("@") for u in usuarios if u.strip()]
     if not usuarios:
         print(" No ingresaste ningún username.")
@@ -14,31 +14,31 @@ def ejecutar_anonimo():
         browser = p.chromium.launch(
             headless=False,
              args=[
-        "--disable-blink-features=AutomationControlled",
-        "--no-proxy-server"   #  Forzar que no se use ningún proxy
-    ]
+                "--disable-blink-features=AutomationControlled",
+                "--no-proxy-server"   #  comentarlo Forzar que no se use ningún proxy
+            ]
         )
         context = configurar_contexto(browser)
         page = context.new_page()
 
         print(" Obteniendo cookies anónimas...")
         page.goto("https://www.tiktok.com", timeout=60000)
-        time.sleep(8)
+        page.wait_for_timeout(8000)  # CAMBIO: wait_for_timeout en lugar de time.sleep
 
         for user in usuarios:
             try:
                 datos = extraer_perfil_y_videos(page, user)
-                datos["lista_seguidores"] = " Requiere login (usa el modo 2)"
-                datos["lista_seguidos"] = " Requiere login (usa el modo 2)"
+                datos["lista_seguidores"] = " Requiere login "
+                datos["lista_seguidos"] = " Requiere login "
 
-                # ✅ Guardar UN archivo por usuario
+                #  Guardar UN archivo por usuario
                 nombre_archivo = f"resultado_{user}.json"
                 guardar_json([datos], nombre_archivo)
 
-                time.sleep(10)
+                page.wait_for_timeout(10000)  # CAMBIO: wait_for_timeout
             except Exception as e:
                 print(f" Error con {user}: {e}")
-                # ✅ También guardar el error en su propio archivo
+                #  También guardar el error en su propio archivo
                 guardar_json(
                     [{"username": user, "error": str(e)}],
                     f"resultado_{user}.json"
@@ -49,5 +49,5 @@ def ejecutar_anonimo():
 
 #  Esto permite ejecutarlo directo con: python scraper_anonimo.py
 if __name__ == "__main__":
-    print("=== MODO ANÓNIMO (sin login) ===")
+    print("=== MODO ANÓNIMO ===")
     ejecutar_anonimo()

@@ -12,7 +12,7 @@ def iniciar_sesion(page):
     page.goto("https://www.tiktok.com", timeout=60000)
     input("   ENTER cuando hayas iniciado sesión... ")
     page.context.storage_state(path=STATE_FILE)
-    print(f"  ✅ Sesión guardada en '{STATE_FILE}'.")
+    print(f"  Sesión guardada en '{STATE_FILE}'.")
 
 
 def extraer_lista_modal(page, tipo):
@@ -20,15 +20,16 @@ def extraer_lista_modal(page, tipo):
     modal = f'[data-e2e="{tipo}-list"]'
     try:
         page.locator(boton).click(timeout=5000)
-        time.sleep(3)
         page.wait_for_selector(modal, timeout=10000)
+        # CAMBIO: esperar explícitamente a que aparezca el primer usuario en el modal
+        page.wait_for_selector(f'{modal} [data-e2e="user-title"]', timeout=10000)
 
         usuarios = set()
         for _ in range(10):
             visibles = page.locator(f'{modal} [data-e2e="user-title"]').all_inner_texts()
             usuarios.update(visibles)
             page.locator(modal).evaluate("el => el.scrollTop = el.scrollHeight")
-            time.sleep(2)
+            page.wait_for_timeout(2000)  # CAMBIO: wait_for_timeout
 
         try:
             page.keyboard.press("Escape")
@@ -41,7 +42,7 @@ def extraer_lista_modal(page, tipo):
 
 
 def ejecutar_autenticado():
-    usuarios = input("\nUsernames separados por coma: ").strip().split(",")
+    usuarios = input("\nUsername: ").strip().split(",")
     usuarios = [u.strip().lstrip("@") for u in usuarios if u.strip()]
     if not usuarios:
         print(" No ingresaste ningún username.")
@@ -50,10 +51,10 @@ def ejecutar_autenticado():
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=False,
-                         args=[
-                    "--disable-blink-features=AutomationControlled",
-                    "--no-proxy-server"   #  Forzar que no se use ningún proxy
-                ]
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--no-proxy-server"   # comentar si falla Forzar que no se use ningún proxy
+            ]
         )
         storage = STATE_FILE if os.path.exists(STATE_FILE) else None
         if storage:
@@ -70,14 +71,14 @@ def ejecutar_autenticado():
                 datos["lista_seguidos"] = extraer_lista_modal(page, "following")
                 datos["lista_seguidores"] = extraer_lista_modal(page, "followers")
 
-                # ✅ Guardar UN archivo por usuario
+                # Guardar UN archivo por usuario
                 nombre_archivo = f"resultado_auth_{user}.json"
                 guardar_json([datos], nombre_archivo)
 
-                time.sleep(12)
+                page.wait_for_timeout(12000)  # CAMBIO: wait_for_timeout
             except Exception as e:
                 print(f" Error con {user}: {e}")
-                # ✅ También guardar el error en su propio archivo
+                #  También guardar el error en su propio archivo
                 guardar_json(
                     [{"username": user, "error": str(e)}],
                     f"resultado_auth_{user}.json"
@@ -88,5 +89,5 @@ def ejecutar_autenticado():
 
 # 🔑 Esto permite ejecutarlo directo con: python scraper_autenticado.py
 if __name__ == "__main__":
-    print("=== MODO AUTENTICADO (con login) ===")
+    print("=== MODO AUTENTICADO ===")
     ejecutar_autenticado()
