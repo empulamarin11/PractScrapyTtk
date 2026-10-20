@@ -1,7 +1,7 @@
 # Practica Scrapy TikTok
 # 🕷️ Scraper de TikTok — Práctica Universitaria
 
-Scraper desarrollado **desde cero** con Python y Playwright para extraer datos públicos de perfiles de TikTok, sin usar APIs oficiales ni librerías de terceros especializadas. Proyecto académico con fines educativos, ejecutado en entorno controlado (máquina virtual) y con consentimiento explícito de los participantes.
+Scraper desarrollado **desde cero** con Python, Playwright y Streamlit para extraer datos públicos de perfiles de TikTok y presentarlos en un Dashboard web interactivo, sin usar APIs oficiales ni librerías de terceros especializadas. Proyecto académico con fines educativos, ejecutado en entorno controlado.
 
 ---
 
@@ -23,20 +23,22 @@ Scraper desarrollado **desde cero** con Python y Playwright para extraer datos p
 
 ## 📖 Descripción
 
-Este proyecto implementa un **scraper modular** para TikTok usando **Playwright** como motor de automatización de navegador. El objetivo es demostrar el proceso completo de extracción de datos de una aplicación web moderna:
+Este proyecto implementa un **scraper modular** para TikTok usando **Playwright** como motor de automatización de navegador y **Streamlit** para la interfaz gráfica. El objetivo es demostrar el proceso completo de extracción de datos de una aplicación web moderna:
 
 1. Renderizado dinámico de JavaScript mediante un navegador real.
 2. Manejo de **cookies anónimas** (`ttwid`, `msToken`, `_ttp`) que TikTok asigna a cualquier visitante.
 3. Extracción de datos estructurados desde el JSON oculto `__UNIVERSAL_DATA_FOR_REHYDRATION__` que TikTok incrusta en el HTML.
-4. Captura de respuestas XHR (llamadas internas a `/api/post/item_list`) al hacer scroll para obtener más videos.
-5. Persistencia de sesión con `storage_state` para desbloquear datos que requieren autenticación.
+4. Captura de respuestas XHR (llamadas internas a `/api/post/item_list` y `/api/comment/list/`) al hacer scroll.
+5. Persistencia de sesión con `storage_state` para desbloquear datos que requieren autenticación (como los comentarios y las listas de seguidores).
+6. Presentación de resultados en un Dashboard web moderno, con reproductor de videos integrado.
 
 El scraper ofrece **dos modos de ejecución**:
 
 | Modo | Requiere login | Datos que obtiene |
 |---|---|---|
-| **Anónimo** | ❌ No | Perfil, bio, stats, últimos 12 videos (con vistas, likes, comentarios, compartidos) |
-| **Autenticado** | ✅ Sí (una vez) | Todo lo anterior **+** lista de seguidores y seguidos |
+| **Anónimo** | ❌ No | Perfil, bio, stats, últimos 10 videos (con vistas, likes, comentarios, compartidos) |
+| **Autenticado** | ✅ Sí (una vez) | Todo lo anterior **+** reproducción de video **+** extracción de hasta 20 comentarios reales **+** listas parciales de seguidores y seguidos |
+
 
 ---
 
@@ -44,24 +46,27 @@ El scraper ofrece **dos modos de ejecución**:
 
 - ✅ Extracción desde el **JSON oculto** de TikTok (más estable que los selectores CSS).
 - ✅ Manejo automático de **cookies anónimas**.
-- ✅ **Scroll dinámico** para cargar más de 12 videos.
-- ✅ **Captura de XHR** para no depender del DOM.
+- ✅ **Scroll dinámico** para cargar más videos y comentarios.
+- ✅ **Captura de XHR** para no depender del DOM al extraer comentarios.
 - ✅ **Persistencia de sesión** con `storage_state` (login solo la primera vez).
 - ✅ **Medidas anti-detección**: ocultar `navigator.webdriver`, User-Agent realista, pausas prudenciales.
-- ✅ **Menú unificado** para elegir el modo de ejecución.
+- ✅ **Interfaz web (Streamlit)**: Dashboard con modo oscuro, tarjetas expandibles y diseño responsive.
+- ✅ **Reproductor integrado**: Reproduce videos de TikTok directamente en la interfaz sin salir de la app.
+- ✅ **Extracción de listas**: Obtiene los nombres de los primeros seguidores y seguidos del perfil.
 - ✅ Resultados exportados a **JSON estructurado**.
-- ✅ Código **modular** (utils compartidas + scrapers independientes).
+- ✅ Código **modular** (utils compartidas + scrapers independientes + interfaz web).
 
 ---
 
 ## 🏗️ Arquitectura del proyecto
 
 ```
-proyecto_tiktok/
+PractScrapyTtk/
 ├── main.py                     # Menú unificado (punto de entrada)
 ├── utils.py                    # Funciones compartidas (contexto, extracción, guardado)
-├── scraper_anonimo.py          # Modo 1: sin login
-├── scraper_autenticado.py      # Modo 2: con login (seguidores/seguidos)
+├── scrapytiktokanonimo.py          # Modo 1: sin login
+├── scrapytiktoklogin.py      # Modo 2: con login (seguidores/seguidos)
+├── streamlit_app.py      # Interfaz gráfica
 ├── requirements.txt            # Dependencias del proyecto
 ├── .gitignore                  # Exclusiones de Git
 ├── README.md                   # Este archivo
@@ -118,6 +123,7 @@ Sabrás que el entorno está activo cuando veas `(venv)` al inicio de tu prompt.
 
 ```bash
 pip install -r requirements.txt
+pip install streamlit
 ```
 
 ### 4. Instalar el navegador de Playwright
@@ -136,7 +142,26 @@ Este paso descarga ~150 MB y **solo se hace la primera vez**.
 
 ### Iniciar el programa
 
-Con el entorno virtual activado:
+Con el entorno virtual activado ejecuta:
+
+```bash
+streamlit run streamlit_app.py
+```
+Se abrirá una pestaña en tu navegador (usualmente en http://localhost:8501) con el Dashboard.
+
+Modo Anónimo: Puedes buscar perfiles directamente.
+
+Modo Autenticado: Haz clic en "Iniciar Sesión". Se abrirá una ventana de Chromium. Ingresa tus credenciales y espera a que TikTok te redirija a tu feed principal. La ventana se cerrará y tu sesión se guardará en tiktok_state.json.
+
+Búsqueda: Ingresa el username y presiona "Buscar ✨".
+
+Videos: Haz clic en cada tarjeta para ver los detalles y reproducir el video.
+
+Comentarios: Si tienes sesión activa, presiona "💬 Ver hasta 20 comentarios" dentro de la tarjeta de un video.
+
+Listas de Comunidad: Debajo de las métricas, encontrarás las flechitas desplegables para ver los seguidores y seguidos extraídos.
+
+### Opción B: Consola
 
 ```bash
 python main.py
@@ -148,8 +173,8 @@ Verás un menú como este:
 =============================================
       SCRAPER DE TIKTOK — MENÚ PRINCIPAL
 =============================================
-1. Modo anónimo   (sin login, sin seguidores)
-2. Modo autenticado (con login, todo completo)
+1. Modo anónimo   (sin login)
+2. Modo autenticado (con login)
 3. Salir
 =============================================
 Elige una opción (1/2/3):
@@ -209,12 +234,13 @@ Por cada perfil, el scraper genera un objeto JSON con esta estructura:
 | Username, Name, Bio | ✅ | ✅ |
 | Nº de seguidores | ✅ | ✅ |
 | Nº de seguidos | ✅ | ✅ |
-| Lista de seguidos | ⚠️ Limitado | ✅ |
-| Lista de seguidores | ❌ Bloqueado por TikTok | ✅ |
-| Últimos 12 videos | ✅ | ✅ |
+| Últimos 10 videos | ✅ | ✅ |
 | Vistas, likes, comentarios, compartidos | ✅ | ✅ |
+| Reproducción de video en Dashboard | ✅ | ✅ |
+| Comentarios reales (hasta 20) | ❌ Bloqueado por TikTok | ✅ |
+| Lista de seguidores/seguidos | ❌ Bloqueado por TikTok | ⚠️ Limitado (TikTok bloquea fácilmente) |
 
-> **Nota técnica**: TikTok retiró el acceso anónimo a la lista de seguidores de perfiles públicos. Es una limitación de la plataforma, no del scraper.
+> **Nota técnica**: TikTok retiró el acceso anónimo a la lista de comentarios y de seguidores de perfiles públicos. Es una limitación de la plataforma, no del scraper.
 
 ---
 
@@ -257,6 +283,7 @@ Y **cambia la contraseña de tu cuenta de TikTok** inmediatamente.
 | Python | 3.9+ | Lenguaje base |
 | Playwright | 1.48+ | Automatización de navegador |
 | Chromium | (vía Playwright) | Navegador headless/visible |
+| Streamlit | 1.30+ | Interfaz gráfica web adatado al celular de igual forma web |
 | JSON | (stdlib) | Serialización de resultados |
 
 **No se utilizan**:

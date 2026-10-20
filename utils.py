@@ -80,14 +80,18 @@ def extraer_perfil_y_videos(page, username):
     page.on("response", capturar)
 
     videos = user_detail.get("itemList", [])
-    intentos = 0
-    while len(videos) < 10 and intentos < 10:
+    intentos_sin_nuevos = 0
+    while intentos_sin_nuevos < 3: # Si 3 scrolls seguidos no traen nada, paramos
+        videos_antes = len(videos)
         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-        page.wait_for_timeout(2000)  # CAMBIO: wait_for_timeout
-        intentos += 1
-
-    for resp in respuestas_api:
-        videos.extend(resp.get("itemList", []))
+        page.wait_for_timeout(2500) # Esperar a que cargue
+        # (Aquí se capturan las respuestas XHR y se añaden a 'videos')
+        if len(videos) == videos_antes:
+            intentos_sin_nuevos += 1
+        else:
+            intentos_sin_nuevos = 0
+        for resp in respuestas_api:
+            videos.extend(resp.get("itemList", []))
 
     # CAMBIO CRÍTICO: eliminar el listener antes de salir para no acumular entre usuarios
     page.remove_listener("response", capturar)
