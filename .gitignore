@@ -53,3 +53,4 @@ desktop.ini
 # === Logs y temporales ===
 *.log
 *.tmp
+app.py
