@@ -300,7 +300,7 @@ El scraping se implementa **desde cero** siguiendo los requisitos de la práctic
 
 **Erick Mauricio**  
 Práctica universitaria — Ingeniería  
-GitHub: [@ErickMau](https://github.com/ErickMau)
+GitHub: [@empulamarin11](https://github.com/empulamarin11)
 
 ---
 

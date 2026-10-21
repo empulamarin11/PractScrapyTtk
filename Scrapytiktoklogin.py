@@ -1,9 +1,9 @@
+#Importar librerías
 import os
-import time
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright #Versión síncrona
 from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json
 
-STATE_FILE = "tiktok_state.json"
+STATE_FILE = "tiktok_state.json" #sesión iniciada guardada
 
 
 def iniciar_sesion(page):
@@ -21,7 +21,7 @@ def extraer_lista_modal(page, tipo):
     try:
         page.locator(boton).click(timeout=5000)
         page.wait_for_selector(modal, timeout=10000)
-        # CAMBIO: esperar explícitamente a que aparezca el primer usuario en el modal
+        #esperar explícitamente a que aparezca el primer usuario en el modal
         page.wait_for_selector(f'{modal} [data-e2e="user-title"]', timeout=10000)
 
         usuarios = set()
@@ -29,10 +29,10 @@ def extraer_lista_modal(page, tipo):
             visibles = page.locator(f'{modal} [data-e2e="user-title"]').all_inner_texts()
             usuarios.update(visibles)
             page.locator(modal).evaluate("el => el.scrollTop = el.scrollHeight")
-            page.wait_for_timeout(2000)  # CAMBIO: wait_for_timeout
+            page.wait_for_timeout(2000)  
 
         try:
-            page.keyboard.press("Escape")
+            page.keyboard.press("Escape")#tecla scape
         except:
             pass
 
@@ -56,7 +56,7 @@ def ejecutar_autenticado():
                 "--no-proxy-server"   # comentar si falla Forzar que no se use ningún proxy
             ]
         )
-        storage = STATE_FILE if os.path.exists(STATE_FILE) else None
+        storage = STATE_FILE if os.path.exists(STATE_FILE) else None #comprobar la sesión
         if storage:
             print(f" Cargando sesión desde '{storage}'...")
         context = configurar_contexto(browser, storage_state=storage)
@@ -87,7 +87,7 @@ def ejecutar_autenticado():
         browser.close()
 
 
-# 🔑 Esto permite ejecutarlo directo con: python scraper_autenticado.py
+
 if __name__ == "__main__":
     print("=== MODO AUTENTICADO ===")
     ejecutar_autenticado()

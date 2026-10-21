@@ -1,5 +1,5 @@
-import time
-from playwright.sync_api import sync_playwright
+#Importar librerías
+from playwright.sync_api import sync_playwright #versión síncrona
 from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json
 
 
@@ -14,7 +14,7 @@ def ejecutar_anonimo():
         browser = p.chromium.launch(
             headless=False,
              args=[
-                "--disable-blink-features=AutomationControlled",
+                "--disable-blink-features=AutomationControlled", #desagtiva y parecemos un crhome real
                 "--no-proxy-server"   #  comentarlo Forzar que no se use ningún proxy
             ]
         )
@@ -35,7 +35,7 @@ def ejecutar_anonimo():
                 nombre_archivo = f"resultado_{user}.json"
                 guardar_json([datos], nombre_archivo)
 
-                page.wait_for_timeout(10000)  # CAMBIO: wait_for_timeout
+                page.wait_for_timeout(10000)  
             except Exception as e:
                 print(f" Error con {user}: {e}")
                 #  También guardar el error en su propio archivo
@@ -47,7 +47,7 @@ def ejecutar_anonimo():
         browser.close()
 
 
-#  Esto permite ejecutarlo directo con: python scraper_anonimo.py
+
 if __name__ == "__main__":
     print("=== MODO ANÓNIMO ===")
     ejecutar_anonimo()
