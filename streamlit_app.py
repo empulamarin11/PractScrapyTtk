@@ -1,16 +1,15 @@
+#importar librerías
 import streamlit as st
 import streamlit.components.v1 as components
 import os
-import time
 from playwright.sync_api import sync_playwright
 from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json
 
 STATE_FILE = "tiktok_state.json"
 
-# ==========================================
-# 1. CONFIGURACIÓN Y ESTILOS
-# ==========================================
-st.set_page_config(page_title="TikTok Analytics", page_icon="🎵", layout="centered")
+# CONFIGURACIÓN Y ESTILOS
+
+st.set_page_config(page_title="TikTok", page_icon="🎵", layout="centered")
 
 st.markdown("""
 <style>
@@ -38,11 +37,10 @@ st.markdown("""
     div[data-testid="stExpander"] summary { color: #F8FAFC !important; font-weight: 600; }
     [data-testid="stSidebar"] { display: none; }
 </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True) #poner css personaliado
 
-# ==========================================
-# 2. FUNCIONES (Login, Comentarios, Seguidores)
-# ==========================================
+# FUNCIONES (Login, Comentarios, Seguidores)
+
 def hacer_login_manual():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False, args=["--disable-blink-features=AutomationControlled"])
@@ -106,7 +104,7 @@ def extraer_comentarios(video_url):
                     usuario = c.get("user", {}).get("unique_id", "?")
                     likes = c.get("digg_count", 0)
                     res.append(f"**@{usuario}** ({likes} ❤️): {texto}")
-                return "\n\n".join(res)
+                return "\n".join(res)
             return "No se encontraron comentarios en este video."
     except Exception as e:
         return f"Error al extraer: {str(e)[:80]}"
@@ -118,7 +116,7 @@ def extraer_seguidores_seguidos(username):
     
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, args=["--disable-blink-features=AutomationControlled"])
+            browser = p.chromium.launch(headless=False, args=["--disable-blink-features=AutomationControlled"])
             context = configurar_contexto(browser, storage_state=STATE_FILE)
             page = context.new_page()
             page.goto(f"https://www.tiktok.com/@{username}", timeout=60000)
@@ -157,17 +155,17 @@ def extraer_seguidores_seguidos(username):
 # ==========================================
 # 3. INTERFAZ PRINCIPAL
 # ==========================================
-st.title("🎵 TikTok Analytics")
+st.title("🎵 TikTok ")
 
 # Control de Sesión
 if os.path.exists(STATE_FILE):
-    st.success("✅ Sesión activa. Comentarios y listas habilitados.")
+    st.success(" Sesión activa. Comentarios y listas habilitados.")
     if st.button("Cerrar Sesión"):
         os.remove(STATE_FILE)
         st.rerun()
 else:
-    st.warning("⚠️ Inicia sesión para habilitar comentarios y listas.")
-    if st.button("🔐 Iniciar Sesión ahora"):
+    st.warning(" Inicia sesión para habilitar comentarios y listas.")
+    if st.button(" Iniciar Sesión ahora"):
         with st.spinner("Se abrirá una ventana de TikTok. Inicia sesión y espera..."):
             if hacer_login_manual():
                 st.rerun()
@@ -204,8 +202,8 @@ if buscar and username:
                     datos["lista_seguidores_real"] = lista_seg
                     datos["lista_seguidos_real"] = lista_sig
             else:
-                datos["lista_seguidores_real"] = "🔒 Inicia sesión para ver"
-                datos["lista_seguidos_real"] = "🔒 Inicia sesión para ver"
+                datos["lista_seguidores_real"] = " Inicia sesión para ver"
+                datos["lista_seguidos_real"] = " Inicia sesión para ver"
             # -------------------------------------------
             
             st.session_state['datos'] = datos
