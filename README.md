@@ -60,7 +60,7 @@ El proyecto ofrece **dos modos de ejecución** y una interfaz web:
 - ✅ Resultados exportados a **JSON estructurado**.
 - ✅ Código **modular** (utils compartidas + scrapers independientes + interfaz web + módulo de IA).
 
----
+
 
 ## 🏗️ Arquitectura del proyecto
 
@@ -116,7 +116,7 @@ def capturar(response):
         respuestas_api.append(response.json())
 page.on("response", capturar)
 ```
-### 4. Análisis de Emojis (Nuevo)
+### 4. Análisis de Emojis
 Los emojis son señales paralingüísticas. Usamos la librería emoji para extraerlos de la bio y videos, y contarlos usando Counter.
 
 ```python
@@ -126,7 +126,7 @@ def extraer_emojis(texto: str) -> list[str]:
     return [e['emoji'] for e in emoji.emoji_list(texto)]
 ```
 
-### 5. Big Five e Inteligencia Artificial (Nuevo)
+### 5. Big Five e Inteligencia Artificial
 El módulo grok_client.py construye un Prompt estricto y lo envía a la API de Groq (que usa el SDK de OpenAI). La IA devuelve un JSON con los 5 rasgos (0-100) y una conclusión interpretativa.
 
 ```python
