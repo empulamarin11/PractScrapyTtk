@@ -1,7 +1,7 @@
-# Practica Scrapy TikTok
-# 🕷️ Scraper de TikTok — Práctica Universitaria
+# Practica Scrapy TikTok & Big Five
+# 🕷️ Scraper de TikTok - Valor de en los Datos y Análisis Psicométrico
 
-Scraper desarrollado **desde cero** con Python, Playwright y Streamlit para extraer datos públicos de perfiles de TikTok y presentarlos en un Dashboard web interactivo, sin usar APIs oficiales ni librerías de terceros especializadas. Proyecto académico con fines educativos, ejecutado en entorno controlado.
+Scraper desarrollado **desde cero** con Python, Playwright y Streamlit para extraer datos públicos de perfiles de TikTok y presentarlos en un Dashboard web interactivo, sin usar APIs oficiales. Además, el proyecto implementa un módulo de **Inteligencia Artificial** para analizar el contenido y estimar la personalidad del creador usando el modelo psicológico **Big Five (OCEAN)**. Proyecto académico con fines educativos, ejecutado en entorno controlado.
 
 ---
 
@@ -10,6 +10,7 @@ Scraper desarrollado **desde cero** con Python, Playwright y Streamlit para extr
 - [Descripción](#-descripción)
 - [Características](#-características)
 - [Arquitectura del proyecto](#-arquitectura-del-proyecto)
+- [🧠 Funcionamiento Interno y Decisiones Técnicas (Relevante)](#-funcionamiento-interno-y-decisiones-técnicas-relevante)
 - [Requisitos previos](#-requisitos-previos)
 - [Instalación](#-instalación)
 - [Uso](#-uso)
@@ -23,21 +24,23 @@ Scraper desarrollado **desde cero** con Python, Playwright y Streamlit para extr
 
 ## 📖 Descripción
 
-Este proyecto implementa un **scraper modular** para TikTok usando **Playwright** como motor de automatización de navegador y **Streamlit** para la interfaz gráfica. El objetivo es demostrar el proceso completo de extracción de datos de una aplicación web moderna:
+Este proyecto implementa un **scraper modular** para TikTok usando **Playwright** como motor de automatización de navegador y **Streamlit** para la interfaz gráfica. El objetivo es demostrar el proceso completo de extracción de datos de una aplicación web moderna y darles valor:
 
 1. Renderizado dinámico de JavaScript mediante un navegador real.
 2. Manejo de **cookies anónimas** (`ttwid`, `msToken`, `_ttp`) que TikTok asigna a cualquier visitante.
 3. Extracción de datos estructurados desde el JSON oculto `__UNIVERSAL_DATA_FOR_REHYDRATION__` que TikTok incrusta en el HTML.
 4. Captura de respuestas XHR (llamadas internas a `/api/post/item_list` y `/api/comment/list/`) al hacer scroll.
-5. Persistencia de sesión con `storage_state` para desbloquear datos que requieren autenticación (como los comentarios y las listas de seguidores).
-6. Presentación de resultados en un Dashboard web moderno, con reproductor de videos integrado.
+5. Persistencia de sesión con `storage_state` para desbloquear datos que requieren autenticación (como las listas de seguidores).
+6. **Análisis de Emojis:** Extracción de señales emocionales del texto usando la librería `emoji`.
+7. **Estimación Big Five con IA:** Uso de la API de **Groq** (LLM) para procesar los textos y estimar rasgos de personalidad (Apertura, Responsabilidad, Extraversión, Amabilidad, Neuroticismo).
+8. Presentación de resultados en un Dashboard web moderno con gráficos interactivos de `Plotly`.
 
-El scraper ofrece **dos modos de ejecución**:
+El proyecto ofrece **dos modos de ejecución** y una interfaz web:
 
 | Modo | Requiere login | Datos que obtiene |
 |---|---|---|
-| **Anónimo** | ❌ No | Perfil, bio, stats, últimos 10 videos (con vistas, likes, comentarios, compartidos) |
-| **Autenticado** | ✅ Sí (una vez) | Todo lo anterior **+** reproducción de video **+** extracción de hasta 20 comentarios reales **+** listas parciales de seguidores y seguidos |
+| **Anónimo** | ❌ No | Perfil, bio, stats, últimos 10 videos (con vistas, likes, comentarios, compartidos), análisis de emojis y estimación Big Five. |
+| **Autenticado** | ✅ Sí (una vez) | Todo lo anterior **+** reproducción de video **+** extracción de hasta 20 comentarios reales **+** listas parciales de seguidores y seguidos. |
 
 
 ---
@@ -50,11 +53,12 @@ El scraper ofrece **dos modos de ejecución**:
 - ✅ **Captura de XHR** para no depender del DOM al extraer comentarios.
 - ✅ **Persistencia de sesión** con `storage_state` (login solo la primera vez).
 - ✅ **Medidas anti-detección**: ocultar `navigator.webdriver`, User-Agent realista, pausas prudenciales.
-- ✅ **Interfaz web (Streamlit)**: Dashboard con modo oscuro, tarjetas expandibles y diseño responsive.
+- ✅ **Interfaz web (Streamlit)**: Dashboard con modo oscuro, tarjetas expandibles y gráficos Plotly.
 - ✅ **Reproductor integrado**: Reproduce videos de TikTok directamente en la interfaz sin salir de la app.
 - ✅ **Extracción de listas**: Obtiene los nombres de los primeros seguidores y seguidos del perfil.
+- ✅ **Análisis Psicométrico (Big Five)**: IA generativa que interpreta la biografía, descripciones y emojis para generar un arquetipo de personalidad y una conclusión analítica.
 - ✅ Resultados exportados a **JSON estructurado**.
-- ✅ Código **modular** (utils compartidas + scrapers independientes + interfaz web).
+- ✅ Código **modular** (utils compartidas + scrapers independientes + interfaz web + módulo de IA).
 
 ---
 
@@ -62,21 +66,88 @@ El scraper ofrece **dos modos de ejecución**:
 
 ```
 PractScrapyTtk/
-├── main.py                     # Menú unificado (punto de entrada)
-├── utils.py                    # Funciones compartidas (contexto, extracción, guardado)
-├── scrapytiktokanonimo.py          # Modo 1: sin login
-├── scrapytiktoklogin.py      # Modo 2: con login (seguidores/seguidos)
-├── streamlit_app.py      # Interfaz gráfica
-├── requirements.txt            # Dependencias del proyecto
-├── .gitignore                  # Exclusiones de Git
-├── README.md                   # Este archivo
+├── main.py # Menú unificado (punto de entrada CLI)
+├── utils.py # Funciones compartidas (contexto, scraping, clasificación, emojis)
+├── grok_client.py # Conexión con la API de Groq y Prompt Big Five
+├── scrapytiktokanonimo.py # Modo 1: sin login
+├── scrapytiktoklogin.py # Modo 2: con login (seguidores/seguidos)
+├── streamlit_app.py # Interfaz gráfica (Dashboard + gráficas Plotly)
+├── requirements.txt # Dependencias del proyecto
+├── .env # Archivo oculto con la API Key de Groq
+├── .gitignore # Exclusiones de Git (protege .env y sesiones)
+├── README.md # Este archivo
 │
-├── tiktok_state.json           # (generado) Estado de sesión — NO se sube
-├── resultados_anonimo.json     # (generado) Resultados del modo 1 — NO se sube
-└── resultados_autenticado.json # (generado) Resultados del modo 2 — NO se sube
+├── tiktok_state.json # (generado) Estado de sesión — NO se sube
+├── resultado_*.json # (generado) Resultados del scraping — NO se sube
 ```
 
 ---
+
+## 🧠 Funcionamiento Interno y Decisiones Técnicas (Relevante)
+
+Esta sección explica el **por qué** detrás del código, demostrando el dominio técnico del proyecto.
+
+### 1. Evasión Anti-Detección y Navegador Real
+TikTok detecta bots fácilmente. Para evitarlo, inyectamos un script que oculta la propiedad `navigator.webdriver` antes de cargar la página.
+```python
+# utils.py
+context.add_init_script(
+    "Object.defineProperty(navigator, 'webdriver', { get: () => undefined });"
+)
+```
+---
+
+### 2. Extracción mediante JSON Oculto (rehydration)
+En lugar de raspar selectores CSS (que cambian constantemente), leemos el bloque JSON que TikTok usa para hidratar su propio React.
+
+```python
+# utils.py
+raw_json = page.locator("#__UNIVERSAL_DATA_FOR_REHYDRATION__").inner_text()
+data = json.loads(raw_json)
+user_detail = data["__DEFAULT_SCOPE__"]["webapp.user-detail"]
+```
+### 3. Intercepción de XHR (Lazy Loading)
+Al hacer scroll, TikTok hace peticiones en segundo plano. Interceptamos las respuestas para no perder datos.
+
+```python
+# utils.py
+def capturar(response):
+    if "/api/post/item_list" in response.url:
+        respuestas_api.append(response.json())
+page.on("response", capturar)
+```
+### 4. Análisis de Emojis (Nuevo)
+Los emojis son señales paralingüísticas. Usamos la librería emoji para extraerlos de la bio y videos, y contarlos usando Counter.
+
+```python
+# utils.py
+import emoji
+def extraer_emojis(texto: str) -> list[str]:
+    return [e['emoji'] for e in emoji.emoji_list(texto)]
+```
+
+### 5. Big Five e Inteligencia Artificial (Nuevo)
+El módulo grok_client.py construye un Prompt estricto y lo envía a la API de Groq (que usa el SDK de OpenAI). La IA devuelve un JSON con los 5 rasgos (0-100) y una conclusión interpretativa.
+
+```python
+# grok_client.py
+client = OpenAI(api_key=os.getenv("GROQ_API_KEY"), base_url="https://api.groq.com/openai/v1")
+response = client.chat.completions.create(
+    model="openai/gpt-oss-120b",
+    messages=[{"role": "user", "content": prompt}],
+    temperature=0.3
+)
+```
+### 6. Visualización con Plotly (Nuevo)
+El Dashboard renderiza los 5 rasgos de personalidad en un Gráfico de Radar (Telaraña) y las métricas de videos en gráficos de dispersión y barras.
+
+```python
+# streamlit_app.py
+fig_radar = go.Figure(data=go.Scatterpolar(
+    r=valores, theta=categorias, fill='toself', line_color='#FE2C55'
+))
+st.plotly_chart(fig_radar, use_container_width=True)
+```
 
 ## 🔧 Requisitos previos
 
@@ -85,6 +156,7 @@ Antes de instalar el proyecto, asegúrate de tener:
 - **Python 3.9 o superior** → [python.org](https://www.python.org/downloads/)
 - **Git** → [git-scm.com](https://git-scm.com/)
 - **Conexión a internet** (para descargar Playwright y acceder a TikTok)
+- **API KEY** Una API Key gratuita de Groq Console para habilitar el análisis Big Five.
 
 > ⚠️ En Windows, durante la instalación de Python, **marca la casilla "Add Python to PATH"**. Sin esto, los comandos `python` y `pip` no funcionarán.
 
@@ -125,7 +197,6 @@ Sabrás que el entorno está activo cuando veas `(venv)` al inicio de tu prompt.
 pip install -r requirements.txt
 pip install streamlit
 ```
-
 ### 4. Instalar el navegador de Playwright
 
 Playwright necesita su propio navegador Chromium (no usa el de tu sistema):
@@ -136,7 +207,14 @@ playwright install chromium
 
 Este paso descarga ~150 MB y **solo se hace la primera vez**.
 
----
+### 5. Configurar la API Key (Big Five)
+
+Crea un archivo llamado `.env` en la raíz del proyecto y agrega tu clave:
+```env
+GROQ_API_KEY=tu_api_key_de_groq_aqui
+```
+(Si no pones la clave, el programa funcionará igual, pero la pestaña de Big Five mostrará un mensaje de error)
+
 
 ## 🎮 Uso
 
@@ -153,11 +231,11 @@ Modo Anónimo: Puedes buscar perfiles directamente.
 
 Modo Autenticado: Haz clic en "Iniciar Sesión". Se abrirá una ventana de Chromium. Ingresa tus credenciales y espera a que TikTok te redirija a tu feed principal. La ventana se cerrará y tu sesión se guardará en tiktok_state.json.
 
-Búsqueda: Ingresa el username y presiona "Buscar ✨".
+Búsqueda: Ingresa el username y presiona "Buscar ".
 
 Videos: Haz clic en cada tarjeta para ver los detalles y reproducir el video.
 
-Comentarios: Si tienes sesión activa, presiona "💬 Ver hasta 20 comentarios" dentro de la tarjeta de un video.
+Comentarios: Si tienes sesión activa, presiona "leer comentarios" dentro de la tarjeta de un video.
 
 Listas de Comunidad: Debajo de las métricas, encontrarás las flechitas desplegables para ver los seguidores y seguidos extraídos.
 
@@ -201,18 +279,18 @@ Elige una opción (1/2/3):
 
 ## 📊 Datos extraídos
 
-Por cada perfil, el scraper genera un objeto JSON con esta estructura:
+Por cada perfil, el scraper genera un objeto JSON con esta estructura (ampliada con IA):
 
 ```json
 {
   "username": "mau_12",
   "name": "Mauricio",
-  "bio": "Estudiante de ingeniería",
+  "bio": "Estudiante de ingeniería 🚀",
   "seguidores": 1523,
   "seguidos": 312,
   "likes_totales": 45600,
   "videos_totales": 87,
-  "ultimos_12_videos": [
+  "ultimos_10_videos": [
     {
       "url": "https://www.tiktok.com/@mau_12/video/7300000000000000000",
       "descripcion": "Mi primer video con Playwright 🚀",
@@ -222,10 +300,28 @@ Por cada perfil, el scraper genera un objeto JSON con esta estructura:
       "compartidos": 18
     }
   ],
+  "clasificacion": {
+    "clasificacion_tamano": "micro",
+    "engagement_promedio_pct": 6.8,
+    "emojis": {
+      "top_emojis": [["🚀", 3], ["🔥", 2]],
+      "total_emojis": 5
+    }
+  },
+  "bigfive": {
+    "apertura": 85,
+    "responsabilidad": 70,
+    "extraversion": 60,
+    "amabilidad": 75,
+    "neuroticismo": 30,
+    "perfil_arquetipo": "Creativo-Explorador",
+    "justificacion": "El uso de emojis como 🚀 y el tono del texto...",
+    "evidencia_emojis": "Los emojis 🚀🔥 indican entusiasmo...",
+    "conclusion": "Este perfil proyecta una personalidad..."
+  },
   "lista_seguidos": "⚠️ Requiere login (modo autenticado)",
   "lista_seguidores": "⚠️ Requiere login (modo autenticado)"
 }
-```
 
 ### Disponibilidad de datos según el modo
 
@@ -236,7 +332,8 @@ Por cada perfil, el scraper genera un objeto JSON con esta estructura:
 | Nº de seguidos | ✅ | ✅ |
 | Últimos 10 videos | ✅ | ✅ |
 | Vistas, likes, comentarios, compartidos | ✅ | ✅ |
-| Reproducción de video en Dashboard | ✅ | ✅ |
+| Análisis de Emojis y big Five (IA) | ✅ | ✅ |
+| Reproducción de video en un panel | ✅ | ✅ |
 | Comentarios reales (hasta 20) | ❌ Bloqueado por TikTok | ✅ |
 | Lista de seguidores/seguidos | ❌ Bloqueado por TikTok | ⚠️ Limitado (TikTok bloquea fácilmente) |
 
@@ -284,6 +381,11 @@ Y **cambia la contraseña de tu cuenta de TikTok** inmediatamente.
 | Playwright | 1.48+ | Automatización de navegador |
 | Chromium | (vía Playwright) | Navegador headless/visible |
 | Streamlit | 1.30+ | Interfaz gráfica web adatado al celular de igual forma web |
+| Pandas | 2.0+ | Estructuración de datos para gráficas |
+| Plotly | 5.0+ | Gráficos interactivos (Radar, Dispersión) |
+| OpenAI SDK | 1.0+ | Conexión con la API de Groq |
+| python-dotenv | 1.0+ | Gestión segura de la API Key |
+| Emoji | 2.0+ | Extracción de señales emocionales |
 | JSON | (stdlib) | Serialización de resultados |
 
 **No se utilizan**:

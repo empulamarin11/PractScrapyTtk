@@ -1,11 +1,4 @@
-"""
-Módulo dedicado a la integración con Groq (API compatible con OpenAI).
-Encapsula la lógica de Big Five para separarla del scraping.
-
-Uso:
-    from grok_client import analizar_bigfive
-    resultado = analizar_bigfive(datos, clasificacion)
-"""
+#importamos las librerías
 
 import json
 import os
@@ -24,6 +17,7 @@ _BASE_URL = "https://api.groq.com/openai/v1"  # Endpoint compatible con OpenAI [
 def _construir_prompt(datos: dict, clasificacion: dict) -> str:
     """Construye el prompt a partir de los datos del perfil, incluyendo emojis."""
     bio = datos.get("bio", "") or "Sin biografía"
+    #extrer el texto descripciones
     descripciones = [
         v.get("descripcion", "")
         for v in datos.get("ultimos_10_videos", []) or []
@@ -33,7 +27,7 @@ def _construir_prompt(datos: dict, clasificacion: dict) -> str:
     engagement = clasificacion.get("engagement_promedio_pct", 0)
     seguidores = datos.get("seguidores", 0)
 
-    # ⭐ NUEVO: extraer emojis del análisis ya hecho
+    #  extraer emojis del análisis ya hecho
     emojis_info = clasificacion.get("emojis", {})
     emojis_bio = emojis_info.get("emojis_bio", [])
     top_emojis = [e[0] for e in emojis_info.get("top_emojis", [])]
@@ -91,21 +85,23 @@ def analizar_bigfive(datos: dict, clasificacion: dict) -> dict | None:
     Estima rasgos Big Five con Groq.
     Devuelve un dict con los 5 rasgos + justificación, o None si falla.
     """
-    api_key = os.getenv("GROQ_API_KEY")
+    api_key = os.getenv("GROQ_API_KEY") 
     if not api_key:
-        print("⚠️ GROQ_API_KEY no configurada en .env. Saltando Big Five.")
+        print(" GROQ_API_KEY no configurada en .env. Saltando Big Five.")
         return None
 
     try:
-        client = OpenAI(api_key=api_key, base_url=_BASE_URL)
+        client = OpenAI(api_key=api_key, base_url=_BASE_URL) #inicializa el cliente
+        #llamamos a la IA
         response = client.chat.completions.create(
             model=_MODELO,
             messages=[{"role": "user", "content": _construir_prompt(datos, clasificacion)}],
-            temperature=0.3,
+            temperature=0.3, #respuestas mas lógicas
         )
         contenido = _limpiar_json(response.choices[0].message.content)
-        return json.loads(contenido)
+        return json.loads(contenido) #extraemos de texto y convertir a diccionario py
 
     except Exception as e:
         print(f"⚠️ Error en Big Five para @{datos.get('username', '?')}: {e}")
         return None
+

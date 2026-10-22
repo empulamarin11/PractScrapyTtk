@@ -2,7 +2,6 @@
 import json
 import re
 from collections import Counter
-import re as _re_emojis
 import emoji
 
 #Simulador del navegador Chrome real enviar http al tiktok
@@ -135,9 +134,9 @@ def guardar_json(resultados, nombre_archivo):
     print(f"\n Guardado en '{nombre_archivo}'.")
 
 
-# ---------------------------------------------------------------------------
+
 # Clasificación y métricas derivadas (para gráficas en el dashboard)
-# ---------------------------------------------------------------------------
+
 def clasificar_perfil(datos: dict) -> dict:
     """
     Analiza un perfil recién extraído y devuelve un dict con:

@@ -3,7 +3,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import os
 import pandas as pd
-import plotly.express as px
+import plotly.express as px #crear graficos
 from playwright.sync_api import sync_playwright
 from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json, clasificar_perfil
 from grok_client import analizar_bigfive
@@ -155,9 +155,8 @@ def extraer_seguidores_seguidos(username):
     except Exception as e:
         return f"Error: {str(e)[:30]}", f"Error: {str(e)[:30]}"
 
-# ==========================================
+
 # 3. INTERFAZ PRINCIPAL
-# ==========================================
 st.title("🎵 TikTok ")
 
 # Control de Sesión
@@ -215,9 +214,8 @@ if buscar and username:
         except Exception as e:
             st.error(f"Error: {e}")
 
-# ==========================================
 # 4. MOSTRAR RESULTADOS (con gráficas)
-# ==========================================
+
 if 'datos' in st.session_state:
     datos = st.session_state['datos']
     st.divider()
@@ -246,7 +244,7 @@ if 'datos' in st.session_state:
         ["📊 Métricas", "🎬 Videos", "👥 Comunidad", "🧠 Big Five (IA)", "😊 Emojis"]
     )
 
-    # ============ TAB 1: MÉTRICAS ============
+    #  TAB 1: MÉTRICAS 
     with tab_metricas:
         eng = cl.get("engagement_promedio_pct", 0)
         col_a, col_b = st.columns(2)
@@ -302,74 +300,61 @@ if 'datos' in st.session_state:
         else:
             st.info("Sin palabras relevantes en la bio.")
 
-    # ============ TAB 2: VIDEOS ============
+    # TAB 2: VIDEOS 
     with tab_videos:
         videos = datos.get("ultimos_10_videos", []) or []
         if not videos:
             st.info("No se pudieron extraer videos.")
         else:
-            # --- Gráfico de dispersión: vistas vs likes ---
             st.markdown("### 📈 Vistas vs Likes por video")
             df_v = pd.DataFrame(videos)
-            fig_scatter = px.scatter(
-                df_v,
-                x="vistas",
-                y="likes",
-                size="comentarios",
-                hover_data=["descripcion"],
-                color="likes",
-                color_continuous_scale=["#25F4EE", "#FE2C55"],
-                title="Cada punto es un video (tamaño = comentarios)",
-            )
-            fig_scatter.update_layout(
-                plot_bgcolor="rgba(0,0,0,0)",
-                paper_bgcolor="rgba(0,0,0,0)",
-                font_color="#E2E8F0",
-            )
+            fig_scatter = px.scatter(df_v, x="vistas", y="likes", size="comentarios", hover_data=["descripcion"], color="likes", color_continuous_scale=["#25F4EE", "#FE2C55"], title="Cada punto es un video")
+            fig_scatter.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font_color="#E2E8F0")
             st.plotly_chart(fig_scatter, use_container_width=True)
 
-            # --- Gráfico de barras: vistas por video ---
             st.markdown("### 📊 Vistas por video")
-            chart_df = pd.DataFrame({
-                "Video": [f"#{i+1}" for i in range(len(videos))],
-                "Vistas": [v.get("vistas", 0) or 0 for v in videos],
-            }).set_index("Video")
+            chart_df = pd.DataFrame({"Video": [f"#{i+1}" for i in range(len(videos))], "Vistas": [v.get("vistas", 0) or 0 for v in videos]}).set_index("Video")
             st.bar_chart(chart_df, height=300)
 
-            # --- Tabla detallada con iframe por video ---
             st.markdown("### 🎬 Detalle de videos")
             for i, v in enumerate(videos):
-                with st.expander(
-                    f"▶️ Video {i+1} • {v.get('vistas', 0):,} vistas"
-                ):
+                with st.expander(f"▶️ Video {i+1} • {v.get('vistas', 0):,} vistas"):
                     col_info, col_video = st.columns([1, 1.2])
+                    
                     with col_info:
                         st.markdown(f"""
-                        <div style="background: #0F172A; padding: 15px;
-                                    border-radius: 12px; border: 1px solid #334155;">
+                        <div style="background: #0F172A; padding: 15px; border-radius: 12px; border: 1px solid #334155;">
                             <p>👁️ <b>Vistas:</b> {v.get('vistas', 0):,}</p>
                             <p>❤️ <b>Likes:</b> {v.get('likes', 0):,}</p>
                             <p>💬 <b>Comentarios:</b> {v.get('comentarios', 0):,}</p>
                             <p>🔁 <b>Compartidos:</b> {v.get('compartidos', 0):,}</p>
-                            <hr style="margin: 10px 0; border: none;
-                                       border-top: 1px solid #334155;">
-                            <p style="font-size: 13px; color: #94A3B8;">
-                                <i>{v.get('descripcion', 'Sin descripción')}</i>
-                            </p>
+                            <hr style="margin: 10px 0; border: none; border-top: 1px solid #334155;">
+                            <p style="font-size: 13px; color: #94A3B8;"><i>{v.get('descripcion', 'Sin descripción')}</i></p>
                         </div>
                         """, unsafe_allow_html=True)
+                        
+                        if os.path.exists(STATE_FILE):
+                            st.write("")
+                            # VER COMENTARIOS EN TEXTO
+                            if st.button(f"👀 Leer comentarios", key=f"com_leer_{i}"):
+                                with st.spinner("Cargando comentarios..."):
+                                    texto_comentarios = extraer_comentarios(v.get('url', ''))
+                                    st.markdown(f"""
+                                    <div style="background: #0F172A; padding: 15px; border-radius: 12px; border: 1px solid #334155; margin-top: 10px; font-size: 13px;">
+                                        {texto_comentarios.replace(chr(10), '<br><br>')}
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                        else:
+                            st.caption(" Inicia sesión para ver comentarios.")
+
                     with col_video:
                         video_id = v.get('url', '').split("/")[-1]
                         iframe_html = f"""
-                        <iframe src="https://www.tiktok.com/embed/v2/{video_id}"
-                                style="width: 100%; height: 450px;
-                                       border: none; border-radius: 12px;"
-                                allow="fullscreen">
-                        </iframe>
+                        <iframe src="https://www.tiktok.com/embed/v2/{video_id}" style="width: 100%; height: 450px; border: none; border-radius: 12px;" allow="fullscreen"></iframe>
                         """
                         components.html(iframe_html, height=470)
 
-    # ============ TAB 3: COMUNIDAD ============
+    #  TAB 3: COMUNIDAD 
     with tab_comunidad:
         col_followers, col_following = st.columns(2)
 
@@ -391,7 +376,7 @@ if 'datos' in st.session_state:
                 else:
                     st.info(seguidos)
 
-    # ============ TAB 4: BIG FIVE ============
+    #  TAB 4: BIG FIVE
     with tab_bigfive:
         bf = datos.get("bigfive")
         if bf and isinstance(bf, dict):
@@ -404,7 +389,7 @@ if 'datos' in st.session_state:
             c4.metric("Amabilidad", bf.get("amabilidad", "—"))
             c5.metric("Neuroticismo", bf.get("neuroticismo", "—"))
 
-             # -------- Evidencia de emojis (NUEVO) --------
+             # - Evidencia de emojis 
             evidencia = bf.get("evidencia_emojis", "")
             if evidencia:
                 st.markdown("#### 🔍 Evidencia emocional (emojis)")
@@ -470,12 +455,11 @@ if 'datos' in st.session_state:
             )
             st.plotly_chart(fig_radar, use_container_width=True)
 
-            st.markdown("**Justificación generada por la IA:**")
+            st.markdown("**Justificación:**")
             st.info(bf.get("justificacion", "Sin justificación disponible."))
 
             st.warning(
-                "⚠️ **Aviso:** Esta es una estimación exploratoria generada por IA "
-                "a partir de textos públicos. No constituye una evaluación psicológica "
+                " **Aviso:** Esta es una estimación, No constituye una evaluación psicológica "
                 "profesional ni un diagnóstico clínico."
             )
         else:
@@ -483,7 +467,7 @@ if 'datos' in st.session_state:
                 "Big Five no disponible. Verifica que `GROQ_API_KEY` esté configurada "
                 "en el archivo `.env` y que el perfil tenga suficiente texto."
             )
-     # ============ TAB 5: EMOJIS ============
+     # TAB 5: EMOJIS 
     with tab_emojis:
         # Buscamos los emojis en clasificacion, y si no, los calculamos al vuelo
         emojis_info = datos.get("clasificacion", {}).get("emojis")
@@ -499,7 +483,7 @@ if 'datos' in st.session_state:
         total = emojis_info.get("total_emojis", 0)
 
         if top_emojis:
-            st.markdown(f"### 😊 Análisis de emojis ({total} detectados)")
+            st.markdown(f"###  Análisis de emojis ({total} detectados)")
 
             # Emojis de la bio
             if emojis_bio:
