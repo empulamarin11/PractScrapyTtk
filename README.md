@@ -11,6 +11,7 @@ Scraper desarrollado **desde cero** con Python, Playwright y Streamlit para extr
 - [Características](#-características)
 - [Arquitectura del proyecto](#-arquitectura-del-proyecto)
 - [🧠 Funcionamiento Interno y Decisiones Técnicas (Relevante)](#-funcionamiento-interno-y-decisiones-técnicas-relevante)
+- [🎯 El Resultado Final: Del Dato Crudo al Análisis de Marca Personal](#-el-resultado-final-del-dato-crudo-al-análisis-de-marca-personal)
 - [Requisitos previos](#-requisitos-previos)
 - [Instalación](#-instalación)
 - [Uso](#-uso)
@@ -19,7 +20,7 @@ Scraper desarrollado **desde cero** con Python, Playwright y Streamlit para extr
 - [Seguridad](#-seguridad)
 - [Tecnologías utilizadas](#-tecnologías-utilizadas)
 - [Autor](#-autor)
-- [🎯 El Resultado Final](#-El Resultado Final)
+
 
 ---
 
@@ -148,6 +149,35 @@ fig_radar = go.Figure(data=go.Scatterpolar(
 ))
 st.plotly_chart(fig_radar, use_container_width=True)
 ```
+
+## 🎯 El Resultado Final
+
+El verdadero valor del proyecto no está solo en extraer datos o pintar una gráfica, sino en **generar una conclusión interpretativa automática** (lo que en marketing se llama *Insight*). 
+
+Después de que la IA (Groq) analiza la bio, los hashtags, los videos y los emojis, el Dashboard no solo muestra 5 números, sino que genera un **Perfil Psicométrico** con los siguientes entregables:
+
+1. **Arquetipo del Creador (Etiqueta):**
+   La IA clasifica al usuario en una categoría de marca personal (Ej: *"Creativo-Explorador"*, *"Líder-Comunicador"* o *"Artista-Introspectivo"*). Esto permite entender de un vistazo qué tipo de contenido consume su audiencia.
+   
+2. **Rasgos Dominante y Débil:**
+   Identifica automáticamente cuál es su mayor fortaleza (ej. una Apertura de 90) y su punto más bajo (ej. una Extraversión de 30). Esto es oro puro para un *Community Manager*, ya que le dice si el creador es mejor para hacer videos hablando a cámara o para hacer contenido visual/artístico en silencio.
+
+3. **La Conclusión Interpretativa (El Párrafo de Valor):**
+   Este es el entregable estrella. El sistema redacta un texto profesional explicando:
+   *   **Cómo se proyecta:** Si es una persona auténtica, ruidosa o reservada.
+   *   **Qué valores comunica:** Si habla de superación, de arte, de humor o de drama.
+   *   **Qué comunidad atrae:** El tipo de personas que se sienten identificadas con él.
+   *   **Recomendación práctica:** Un consejo estratégico (ej. *"Se recomienda sistematizar las llamadas a la acción para convertir engagement en comunidad activa"*).
+
+4. **Evidencia Emocional (Justificación de Emojis):**
+   La IA explica **por qué** tomó esas decisiones, citando los emojis reales encontrados (Ej. *"El uso recurrente de 🚀 y 🌍 sugiere una mentalidad abierta y enfocada en el crecimiento"*).
+
+**¿Para qué sirve esto en la vida real?** 
+Este módulo transforma un simple scraper en una herramienta de **Inteligencia de Negocios**. Una agencia de marketing podría usar esta app para:
+*   Hacer *scouting* y encontrar influencers cuyo perfil psicológico encaje con la imagen de una marca.
+*   Analizar a la competencia y entender por qué conectan con su público.
+*   Darle a un creador un "diagnóstico" de su marca personal sin pagar a un psicólogo o consultor.
+
 
 ## 🔧 Requisitos previos
 
@@ -323,35 +353,6 @@ Por cada perfil, el scraper genera un objeto JSON con esta estructura (ampliada 
   "lista_seguidores": "⚠️ Requiere login (modo autenticado)"
 }
 ```
----
-
-## 🎯 El Resultado Final
-
-El verdadero valor del proyecto no está solo en extraer datos o pintar una gráfica, sino en **generar una conclusión interpretativa automática** (lo que en marketing se llama *Insight*). 
-
-Después de que la IA (Groq) analiza la bio, los hashtags, los videos y los emojis, el Dashboard no solo muestra 5 números, sino que genera un **Perfil Psicométrico** con los siguientes entregables:
-
-1. **Arquetipo del Creador (Etiqueta):**
-   La IA clasifica al usuario en una categoría de marca personal (Ej: *"Creativo-Explorador"*, *"Líder-Comunicador"* o *"Artista-Introspectivo"*). Esto permite entender de un vistazo qué tipo de contenido consume su audiencia.
-   
-2. **Rasgos Dominante y Débil:**
-   Identifica automáticamente cuál es su mayor fortaleza (ej. una Apertura de 90) y su punto más bajo (ej. una Extraversión de 30). Esto es oro puro para un *Community Manager*, ya que le dice si el creador es mejor para hacer videos hablando a cámara o para hacer contenido visual/artístico en silencio.
-
-3. **La Conclusión Interpretativa (El Párrafo de Valor):**
-   Este es el entregable estrella. El sistema redacta un texto profesional explicando:
-   *   **Cómo se proyecta:** Si es una persona auténtica, ruidosa o reservada.
-   *   **Qué valores comunica:** Si habla de superación, de arte, de humor o de drama.
-   *   **Qué comunidad atrae:** El tipo de personas que se sienten identificadas con él.
-   *   **Recomendación práctica:** Un consejo estratégico (ej. *"Se recomienda sistematizar las llamadas a la acción para convertir engagement en comunidad activa"*).
-
-4. **Evidencia Emocional (Justificación de Emojis):**
-   La IA explica **por qué** tomó esas decisiones, citando los emojis reales encontrados (Ej. *"El uso recurrente de 🚀 y 🌍 sugiere una mentalidad abierta y enfocada en el crecimiento"*).
-
-**¿Para qué sirve esto en la vida real?** 
-Este módulo transforma un simple scraper en una herramienta de **Inteligencia de Negocios**. Una agencia de marketing podría usar esta app para:
-*   Hacer *scouting* y encontrar influencers cuyo perfil psicológico encaje con la imagen de una marca.
-*   Analizar a la competencia y entender por qué conectan con su público.
-*   Darle a un creador un "diagnóstico" de su marca personal sin pagar a un psicólogo o consultor.
 
 ---
 
