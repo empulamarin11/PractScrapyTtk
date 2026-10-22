@@ -322,7 +322,7 @@ Por cada perfil, el scraper genera un objeto JSON con esta estructura (ampliada 
   "lista_seguidos": "⚠️ Requiere login (modo autenticado)",
   "lista_seguidores": "⚠️ Requiere login (modo autenticado)"
 }
-
+---
 ### Disponibilidad de datos según el modo
 
 | Dato | Modo anónimo | Modo autenticado |
