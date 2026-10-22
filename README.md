@@ -60,8 +60,7 @@ El proyecto ofrece **dos modos de ejecución** y una interfaz web:
 - ✅ Resultados exportados a **JSON estructurado**.
 - ✅ Código **modular** (utils compartidas + scrapers independientes + interfaz web + módulo de IA).
 
-
-
+---
 ## 🏗️ Arquitectura del proyecto
 
 ```
@@ -138,7 +137,7 @@ response = client.chat.completions.create(
     temperature=0.3
 )
 ```
-### 6. Visualización con Plotly (Nuevo)
+### 6. Visualización con Plotly
 El Dashboard renderiza los 5 rasgos de personalidad en un Gráfico de Radar (Telaraña) y las métricas de videos en gráficos de dispersión y barras.
 
 ```python
