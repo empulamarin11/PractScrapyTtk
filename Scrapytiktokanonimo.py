@@ -1,7 +1,7 @@
 #Importar librerías
 from playwright.sync_api import sync_playwright #versión síncrona
-from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json
-
+from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json, clasificar_perfil
+from grok_client import analizar_bigfive
 
 def ejecutar_anonimo():
     usuarios = input("\nUsername: ").strip().split(",")
@@ -28,6 +28,8 @@ def ejecutar_anonimo():
         for user in usuarios:
             try:
                 datos = extraer_perfil_y_videos(page, user)
+                datos["clasificacion"] = clasificar_perfil(datos)   # ← LÍNEA NUEVa
+                datos["bigfive"] = analizar_bigfive(datos, datos["clasificacion"])   # ← NUEVA
                 datos["lista_seguidores"] = " Requiere login "
                 datos["lista_seguidos"] = " Requiere login "
 

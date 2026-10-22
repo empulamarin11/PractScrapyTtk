@@ -1,7 +1,8 @@
 #Importar librerías
 import os
 from playwright.sync_api import sync_playwright #Versión síncrona
-from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json
+from utils import configurar_contexto, extraer_perfil_y_videos, guardar_json, clasificar_perfil
+from grok_client import analizar_bigfive
 
 STATE_FILE = "tiktok_state.json" #sesión iniciada guardada
 
@@ -68,6 +69,8 @@ def ejecutar_autenticado():
         for user in usuarios:
             try:
                 datos = extraer_perfil_y_videos(page, user)
+                datos["clasificacion"] = clasificar_perfil(datos)   # ← LÍNEA NUEVa
+                datos["bigfive"] = analizar_bigfive(datos, datos["clasificacion"])   # ← NUEVA
                 datos["lista_seguidos"] = extraer_lista_modal(page, "following")
                 datos["lista_seguidores"] = extraer_lista_modal(page, "followers")
 

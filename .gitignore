@@ -4,6 +4,9 @@ env/
 .venv/
 ENV/
 scrapitest.py
+# API keys y secretos
+.env
+.env.*
 
 # === Python ===
 __pycache__/
