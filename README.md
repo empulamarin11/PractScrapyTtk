@@ -149,7 +149,7 @@ fig_radar = go.Figure(data=go.Scatterpolar(
 ))
 st.plotly_chart(fig_radar, use_container_width=True)
 ```
-
+---
 ## 🎯 El Resultado Final
 
 El verdadero valor del proyecto no está solo en extraer datos o pintar una gráfica, sino en **generar una conclusión interpretativa automática** (lo que en marketing se llama *Insight*). 
