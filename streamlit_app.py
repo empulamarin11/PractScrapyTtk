@@ -453,7 +453,68 @@ if 'datos' in st.session_state:
                 showlegend=False,
                 height=400,
             )
+
             st.plotly_chart(fig_radar, use_container_width=True)
+
+            st.divider()
+
+            # -------- IDEA DE NEGOCIO (NUEVO) --------
+            idea_negocio = bf.get("idea_de_negocio", "")
+            if idea_negocio:
+                st.markdown("### 💡 Idea de Negocio Sugerida por la IA")
+                st.markdown(
+                    f"""
+                    <div style="
+                        background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+                        border: 2px solid #25F4EE;
+                        border-radius: 16px;
+                        padding: 24px;
+                        margin: 15px 0;
+                        box-shadow: 0 4px 15px rgba(37, 244, 238, 0.2);
+                    ">
+                        <h4 style="color: #25F4EE !important; margin-top: 0;">Sugerencia de jugete</h4>
+                        <p style="color: #E2E8F0; font-size: 1.05rem; line-height: 1.6; margin-bottom: 0;">
+                            {idea_negocio}
+                        </p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            st.divider()
+
+            # -------- PRODUCTO RECOMENDADO (Adaptado a TeddyCraft Studio) --------
+            producto_nombre = bf.get("producto_recomendado", "")
+            justificacion = bf.get("justificacion_venta", "")
+            
+            if producto_nombre:
+                st.markdown("###  Producto Recomendado por TeddyCraft Studio")
+                st.markdown(
+                    f"""
+                    <div style="
+                        background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+                        border: 2px solid #25F4EE;
+                        border-radius: 16px;
+                        padding: 24px;
+                        margin: 15px 0;
+                        box-shadow: 0 4px 15px rgba(37, 244, 238, 0.2);
+                    ">
+                        <h4 style="color: #25F4EE !important; margin-top: 0;">🎁 Artículo Sugerido para este Cliente</h4>
+                        <p style="color: #FE2C55; font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">
+                            {producto_nombre}
+                        </p>
+                        <p style="color: #E2E8F0; font-size: 1.05rem; line-height: 1.6; margin-bottom: 0;">
+                            {justificacion}
+                        </p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            
+            st.divider()
+
+            st.markdown("**Justificación generada por la:**")
+            # ... (el resto de tu código de justificación y descargo de responsabilidad)
 
             st.markdown("**Justificación:**")
             st.info(bf.get("justificacion", "Sin justificación disponible."))
